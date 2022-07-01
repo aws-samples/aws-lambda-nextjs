@@ -1,0 +1,70 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: >
+  nextjs-lambda
+
+  SAM Template for Next.js on AWS
+
+Parameters:
+  NextBucketName:
+    Type: String
+    Description: Bucket name for Next.js static resources
+    Default: 'next-bucket-2a7ee00c-e305'
+  
+# More info about Globals: https://github.com/awslabs/serverless-application-model/blob/master/docs/globals.rst
+Globals:
+  Function:
+    Timeout: 3
+    Tracing: Active
+  Api:
+    TracingEnabled: True
+
+Resources:
+  NextFunction:
+    Type: AWS::Serverless::Function # More info about Function Resource: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction
+    Properties:
+      CodeUri: .next/standalone
+      Handler: run.sh
+      Runtime: nodejs16.x
+      MemorySize: 512
+      Architectures:
+        - x86_64
+      Environment:
+        Variables:
+          AWS_LAMBDA_EXEC_WRAPPER: /opt/bootstrap
+          RUST_LOG: info
+          PORT: 8080
+      Layers:
+        - !Sub arn:aws:lambda:${AWS::Region}:753240598075:layer:LambdaAdapterLayerX86:2
+      Events:
+        RootPath:
+          Type: Api # More info about API Event Source: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#api
+          Properties:
+            Path: /
+            Method: ANY
+        AnyPath:
+          Type: Api
+          Properties:
+            Path: /{proxy+}
+            Method: ANY
+  NextBucket:
+    Type: 'AWS::S3::Bucket'
+    Properties:
+      BucketName: !Ref NextBucketName
+
+Outputs:
+  # ServerlessRestApi is an implicit API created out of Events key under Serverless::Function
+  # Find out more about other implicit resources you can reference within SAM
+  # https://github.com/awslabs/serverless-application-model/blob/master/docs/internals/generated_resources.rst#api
+  NextApi:
+    Description: "API Gateway endpoint URL for Prod stage for Next function"
+    Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/"
+  NextFunction:
+    Description: "Next Lambda Function ARN"
+    Value: !GetAtt NextFunction.Arn
+  NextFunctionIamRole:
+    Description: "Implicit IAM Role created for Next function"
+    Value: !GetAtt NextFunctionRole.Arn
+  NextBucket:
+    Description: "S3 bucket for Next static resources"
+    Value: !GetAtt NextBucket.Arn

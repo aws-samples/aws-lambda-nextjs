@@ -5,6 +5,7 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
+    "postbuild": "echo \"#!/bin/bash\n\nnode server.js\" > .next/standalone/run.sh",
     "start": "next start",
     "lint": "next lint"
   },

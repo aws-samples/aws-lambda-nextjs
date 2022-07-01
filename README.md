@@ -1,5 +1,35 @@
 This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
 
+## Deploy on AWS
+
+First, build the Next application in standalone mode (see `next.config.js`)
+
+```bash
+npm run build
+```
+
+Now, run `sam build` at the root of the project using the standalone manifest
+
+```bash
+sam build --manifest .next/standalone/package.json
+```
+
+Ideally we can use a Makefile to only copy the required deps to $ARTIFACTS_DIR and deploy static resources to S3.  Something like:
+
+```bash
+build-NextFunction:
+	mkdir -p "$(ARTIFACTS_DIR)/node_modules"
+	cp -r .next/standalone/node_modules/* "$(ARTIFACTS_DIR)/node_modules"
+	cp .next/standalone/server.js "$(ARTIFACTS_DIR)"
+	@echo "#!/bin/bash\n\nnode server.js" > "$(ARTIFACTS_DIR)/run.sh"
+```
+
+Deploy the application
+
+```bash
+sam deploy --guided
+```
+
 ## Getting Started
 
 First, run the development server:
@@ -24,11 +54,3 @@ To learn more about Next.js, take a look at the following resources:
 
 - [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
 - [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js/) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/deployment) for more details.
