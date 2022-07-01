@@ -30,10 +30,9 @@ Deploy the application
 sam deploy --guided
 ```
 
-Deploy static resources to S3
+Deploy static resources to S3: (research other methods like including in sam build Makefile)
 
 ```bash
-Deploy static resources to S3: (research other methods like including in sam build Makefile)
 `aws s3 cp .next/static/ s3://next-bucket-2a7ee00c-e8d9/_next/static --recursive`
 `aws s3 cp public/ s3://next-bucket-2a7ee00c-e8d9/public --recursive`
 ```
