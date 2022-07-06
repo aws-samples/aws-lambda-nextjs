@@ -47,10 +47,100 @@ Resources:
           Properties:
             Path: /{proxy+}
             Method: ANY
+
   NextBucket:
     Type: 'AWS::S3::Bucket'
     Properties:
       BucketName: !Ref NextBucketName
+
+  NextBucketPolicy:
+    Type: AWS::S3::BucketPolicy
+    Properties:
+      Bucket: !Ref NextBucket
+      PolicyDocument:
+        Id: NextBucketPolicy
+        Version: 2012-10-17
+        Statement:
+          - Action:
+              - 's3:GetObject'
+            Effect: Allow
+            Resource: !Join
+              - ''
+              - - 'arn:aws:s3:::'
+                - !Ref NextBucket
+                - /*
+            Principal:
+              AWS: !Sub 'arn:aws:iam::cloudfront:user/CloudFront Origin Access Identity ${NextOriginAccessIdentity}'
+
+  NextOriginAccessIdentity:
+    Type: AWS::CloudFront::CloudFrontOriginAccessIdentity
+    Properties:
+      CloudFrontOriginAccessIdentityConfig:
+        Comment: OAI for Next static resources in S3 bucket
+
+  NextDistribution:
+    Type: AWS::CloudFront::Distribution
+    Properties:
+      DistributionConfig:
+        Origins:
+        - Id: nextS3Origin
+          DomainName: !GetAtt NextBucket.DomainName
+          S3OriginConfig:
+            OriginAccessIdentity: !Sub origin-access-identity/cloudfront/${NextOriginAccessIdentity}
+        - Id: nextAPIGatewayOrigin
+          DomainName: !Sub "${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com"
+          OriginPath: '/Prod'
+          CustomOriginConfig:
+            HTTPSPort: '443'
+            OriginProtocolPolicy: https-only
+        Enabled: 'true'
+        Comment: 'Next.js Distribution'
+        HttpVersion: http2
+        DefaultRootObject: ''
+        DefaultCacheBehavior:
+          TargetOriginId: nextAPIGatewayOrigin
+          # CachePolicyId: 658327ea-f89d-4fab-a63d-7e88639e58f6
+          ForwardedValues:
+            QueryString: 'true'
+            Cookies:
+              Forward: all
+          Compress: 'true'
+          AllowedMethods:
+          - DELETE
+          - GET
+          - HEAD
+          - OPTIONS
+          - PATCH
+          - POST
+          - PUT
+          ViewerProtocolPolicy: redirect-to-https
+          MaxTTL: '31536000'
+        CacheBehaviors:
+        - PathPattern: '/_next/static/*'
+          TargetOriginId: nextS3Origin
+          AllowedMethods:
+          - GET
+          - HEAD
+          ForwardedValues:
+            QueryString: 'false'
+            Cookies:
+              Forward: none
+          Compress: 'true'
+          ViewerProtocolPolicy: https-only
+        - PathPattern: 'static/*'
+          TargetOriginId: nextS3Origin
+          AllowedMethods:
+          - GET
+          - HEAD
+          ForwardedValues:
+            QueryString: 'false'
+            Cookies:
+              Forward: none
+          Compress: 'true'
+          ViewerProtocolPolicy: https-only
+        PriceClass: PriceClass_100
+        ViewerCertificate:
+          CloudFrontDefaultCertificate: 'true'
 
 Outputs:
   # ServerlessRestApi is an implicit API created out of Events key under Serverless::Function
@@ -68,3 +158,6 @@ Outputs:
   NextBucket:
     Description: "S3 bucket for Next static resources"
     Value: !GetAtt NextBucket.Arn
+  NextDistribution:
+    Description: "CloudFront distribution for Next.js"
+    Value: !GetAtt NextDistribution.DomainName
