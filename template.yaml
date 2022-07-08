@@ -125,7 +125,7 @@ Resources:
               Forward: none
           Compress: 'true'
           ViewerProtocolPolicy: https-only
-        - PathPattern: 'static/*'
+        - PathPattern: '/static/*'
           TargetOriginId: nextS3Origin
           AllowedMethods:
           - GET
