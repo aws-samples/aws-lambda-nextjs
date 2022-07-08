@@ -99,7 +99,6 @@ Resources:
         DefaultRootObject: ''
         DefaultCacheBehavior:
           TargetOriginId: nextAPIGatewayOrigin
-          # CachePolicyId: 658327ea-f89d-4fab-a63d-7e88639e58f6
           ForwardedValues:
             QueryString: 'true'
             Cookies:
