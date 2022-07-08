@@ -9,7 +9,6 @@ Parameters:
   NextBucketName:
     Type: String
     Description: Bucket name for Next.js static resources
-    Default: 'next-bucket-2a7ee00c-e305'
   
 # More info about Globals: https://github.com/awslabs/serverless-application-model/blob/master/docs/globals.rst
 Globals:

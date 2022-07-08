@@ -8,10 +8,10 @@ First, build the Next application in standalone mode (see `next.config.js`)
 npm run build
 ```
 
-Now, run `sam build` at the root of the project using the standalone manifest
+Now, run `sam build` at the root of the project
 
 ```bash
-sam build --manifest .next/standalone/package.json
+sam build
 ```
 
 Ideally we can use a Makefile to only copy the required deps to $ARTIFACTS_DIR and deploy static resources to S3.  Something like:
@@ -33,8 +33,8 @@ sam deploy --guided
 Deploy static resources to S3: (research other methods like including in sam build Makefile)
 
 ```bash
-`aws s3 cp .next/static/ s3://next-bucket-2a7ee00c-e8d9/_next/static --recursive`
-`aws s3 cp public/ s3://next-bucket-2a7ee00c-e8d9/public --recursive`
+`aws s3 cp .next/static/ s3://<YOUR-BUCKET-NAME>/_next/static --recursive`
+`aws s3 cp public/static s3://<YOUR-BUCKET-NAME>/static --recursive`
 ```
 
 ## Getting Started
