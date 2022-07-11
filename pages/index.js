@@ -57,7 +57,7 @@ export default function Home() {
           target="_blank"
           rel="noopener noreferrer"
         >
-          <Image src="/static/aws.svg" alt="AWS" width={75} height={25} />
+          <Image src="/static/AWS.svg" alt="AWS" width={75} height={25} />
         </a>
       </footer>
     </div>
