@@ -74,6 +74,7 @@ export class NextjsLambdaCdkStack extends Stack {
       defaultBehavior: { 
         origin: new origins.RestApiOrigin(api), 
         viewerProtocolPolicy: cloudfront.ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
+        cachePolicy: cloudfront.CachePolicy.CACHING_DISABLED,
       },
       additionalBehaviors: {
         '_next/static/*': {
