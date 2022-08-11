@@ -5,6 +5,7 @@ This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next
 First, build the Next application in standalone mode (see `next.config.js`)
 
 ```bash
+npm install
 npm run build
 ```
 
