@@ -9,7 +9,7 @@ AWS. There are two methods of deployment, AWS SAM and AWS CDK.
 ## Requirements
 - Node.js 16.x
 - Next.js 12.x
-- [LambdaAdapterLayerX86:2](https://github.com/awslabs/aws-lambda-web-adapter)
+- [LambdaAdapterLayerX86:3](https://github.com/awslabs/aws-lambda-web-adapter)
 - AWS CDK 2.30.x
 - AWS SAM CLI 1.53.x
 - Configured aws credentials
