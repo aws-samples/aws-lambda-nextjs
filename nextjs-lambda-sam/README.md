@@ -15,16 +15,6 @@ Now, run `sam build` at the root of the project
 sam build
 ```
 
-Ideally we can use a Makefile to only copy the required deps to $ARTIFACTS_DIR and deploy static resources to S3.  Something like:
-
-```bash
-build-NextFunction:
-	mkdir -p "$(ARTIFACTS_DIR)/node_modules"
-	cp -r .next/standalone/node_modules/* "$(ARTIFACTS_DIR)/node_modules"
-	cp .next/standalone/server.js "$(ARTIFACTS_DIR)"
-	@echo "#!/bin/bash\n\nnode server.js" > "$(ARTIFACTS_DIR)/run.sh"
-```
-
 Deploy the application
 
 ```bash
@@ -37,6 +27,19 @@ Deploy static resources to S3: (research other methods like including in sam bui
 `aws s3 cp .next/static/ s3://<YOUR-BUCKET-NAME>/_next/static --recursive`
 `aws s3 cp public/static s3://<YOUR-BUCKET-NAME>/static --recursive`
 ```
+
+## Future Iteration
+
+Ideally we can use a Makefile to only copy the required deps to $ARTIFACTS_DIR and deploy static resources to S3.  Something like:
+
+```bash
+build-NextFunction:
+	mkdir -p "$(ARTIFACTS_DIR)/node_modules"
+	cp -r .next/standalone/node_modules/* "$(ARTIFACTS_DIR)/node_modules"
+	cp .next/standalone/server.js "$(ARTIFACTS_DIR)"
+	@echo "#!/bin/bash\n\nnode server.js" > "$(ARTIFACTS_DIR)/run.sh"
+```
+
 
 ## Getting Started
 

@@ -8,10 +8,6 @@ import utilStyles from '../styles/utils.module.css';
 const name = 'Next.js applications with Serverless services on AWS';
 export const siteTitle = 'Next.js Sample Website';
 
-const myLoader = ({ src, width, quality }) => {
-  return `${src}?w=${width}&q=${quality || 75}`
-}
-
 const Layout = ({ children, home }) => {
   return (
     <div className={styles.container}>
@@ -35,8 +31,7 @@ const Layout = ({ children, home }) => {
           <>
             <Image
               priority
-              loader={myLoader}
-              src="/static/images/profile.jpg"
+              src="/static/images/AWS.svg"
               className={utilStyles.borderCircle}
               height={144}
               width={144}
@@ -50,8 +45,7 @@ const Layout = ({ children, home }) => {
               <a>
                 <Image
                   priority
-                  loader={myLoader}
-                  src="/static/images/profile.jpg"
+                  src="/static/images/AWS.svg"
                   className={utilStyles.borderCircle}
                   height={108}
                   width={108}
