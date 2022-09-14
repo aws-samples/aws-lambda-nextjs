@@ -22,7 +22,7 @@ Resources:
   NextFunction:
     Type: AWS::Serverless::Function # More info about Function Resource: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction
     Properties:
-      CodeUri: .next/standalone
+      CodeUri: ./
       Handler: run.sh
       Runtime: nodejs16.x
       MemorySize: 512
@@ -46,7 +46,9 @@ Resources:
           Properties:
             Path: /{proxy+}
             Method: ANY
-
+    Metadata:
+      BuildMethod: makefile
+      
   NextBucket:
     Type: 'AWS::S3::Bucket'
     Properties:
