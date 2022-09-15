@@ -1,7 +1,6 @@
 # Running Next.js applications with Serverless services on AWS
 
-This repository shows how you can run a Next.js application with Serverless services on 
-AWS. There are two methods of deployment, AWS SAM and AWS CDK.
+This example walks you through how to run a Next.js application on Serverless services on AWS. There is a sample AWS Cloud Development Kit (CDK) application and AWS Serverless Application Model (SAM) application. Either CDK or SAM create a demo environment showing how you can use Amazon API Gateway, AWS Lambda, Amazon CloudFront, and Amazon S3 to run a Next.js application.
 
 ## Solution Architecture
 ![Next.js Serverless Architecture](nextjs-serverless-architecture.png)
@@ -16,3 +15,9 @@ AWS. There are two methods of deployment, AWS SAM and AWS CDK.
 ## Folder structure
 - /nextjs-lambda-cdk - Next.js application deployed with AWS CDK
 - /nextjs-lambda-sam - Next.js application deployed with AWS SAM
+
+## Security
+See [CONTRIBUTING](CONTRIBUTING.md#security-issue-notifications) for more information.
+
+## License
+This sample code is made available under the Apache-2.0 License. See the LICENSE file.

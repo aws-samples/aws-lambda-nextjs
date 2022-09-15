@@ -36,3 +36,12 @@ The `cdk.json` file tells the CDK Toolkit how to execute your app.
 * `cdk deploy`      deploy this stack to your default AWS account/region
 * `cdk diff`        compare deployed stack with current state
 * `cdk synth`       emits the synthesized CloudFormation template
+
+## Destroy CDK app resources
+
+To clean up your CDK app run the below command:
+```bash
+cdk destroy --all
+```
+
+Please be aware that some resources aren't automatically deleted and either need a retention policy that allows deletes or you need to delete them manually in you AWS account.
