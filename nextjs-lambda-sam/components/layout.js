@@ -31,7 +31,7 @@ const Layout = ({ children, home }) => {
           <>
             <Image
               priority
-              src="/static/images/AWS.svg"
+              src="/static/images/landscape.svg"
               className={utilStyles.borderCircle}
               height={144}
               width={144}
