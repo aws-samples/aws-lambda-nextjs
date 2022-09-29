@@ -63,9 +63,20 @@ export class NextjsLambdaCdkStack extends Stack {
       }),
       anyMethod: true,
     });
+
+    const nextLoggingBucket = new s3.Bucket(this, 'next-logging-bucket', {
+      blockPublicAccess: s3.BlockPublicAccess.BLOCK_ALL,
+      encryption: s3.BucketEncryption.S3_MANAGED,
+      versioned: true,
+      accessControl: s3.BucketAccessControl.LOG_DELIVERY_WRITE,
+    });
     
     const nextBucket = new s3.Bucket(this, 'next-bucket', {
       blockPublicAccess: s3.BlockPublicAccess.BLOCK_ALL,
+      encryption: s3.BucketEncryption.S3_MANAGED,
+      versioned: true,
+      serverAccessLogsBucket: nextLoggingBucket,
+      serverAccessLogsPrefix: 's3-access-logs',
     });
 
     new CfnOutput(this, 'Next bucket', { value: nextBucket.bucketName });
@@ -85,7 +96,10 @@ export class NextjsLambdaCdkStack extends Stack {
           origin: new origins.S3Origin(nextBucket),
           viewerProtocolPolicy: cloudfront.ViewerProtocolPolicy.HTTPS_ONLY,
         },
-      }
+      },
+      minimumProtocolVersion: cloudfront.SecurityPolicyProtocol.TLS_V1_2_2018,
+      logBucket: nextLoggingBucket,
+      logFilePrefix: 'cloudfront-access-logs',
     });
     
     new CfnOutput(this, 'CloudFront URL', {
