@@ -20,4 +20,4 @@ This example walks you through how to run a Next.js application on Serverless se
 See [CONTRIBUTING](CONTRIBUTING.md#security-issue-notifications) for more information.
 
 ## License
-This sample code is made available under the Apache-2.0 License. See the LICENSE file.
+This sample code is made available under the MIT-0 License. See the LICENSE file.
