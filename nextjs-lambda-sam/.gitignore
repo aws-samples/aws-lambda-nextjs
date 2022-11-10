@@ -28,6 +28,9 @@ yarn-error.log*
 # local env files
 .env*.local
 
+node_modules
+package-lock.json
+
 ### SAM ###
 # Ignore build directories for the AWS Serverless Application Model (SAM)
 # Info: https://aws.amazon.com/serverless/sam/
