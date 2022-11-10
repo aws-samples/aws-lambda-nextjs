@@ -1,0 +1,15 @@
+# TS CDK projects ignore all .js files created by CDK except jest.config.js
+*.js
+!jest.config.js
+
+# Non CDK .js files need to be tracked
+!app/**.js
+!app/**/*.js
+
+*.d.ts
+node_modules
+package-lock.json
+
+# CDK asset staging directory
+.cdk.staging
+cdk.out
