@@ -1,0 +1,207 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: >
+  nextjs-lambda
+
+  SAM Template for Next.js on AWS
+
+Parameters:
+  NextBucketName:
+    Type: String
+    Description: Bucket name for Next.js static resources
+  
+# More info about Globals: https://github.com/awslabs/serverless-application-model/blob/master/docs/globals.rst
+Globals:
+  Function:
+    Timeout: 3
+    Tracing: Active
+  Api:
+    TracingEnabled: True
+
+Resources:
+  NextFunction:
+    #checkov:skip=CKV_AWS_115: "For demo purposes, not setting function-level concurrent execution limit"
+    #checkov:skip=CKV_AWS_116: "For demo purposes and costs, not configuring a Dead Letter Queue (DLQ)"
+    Type: AWS::Serverless::Function # More info about Function Resource: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction
+    Properties:
+      CodeUri: ./
+      Handler: run.sh
+      Runtime: nodejs16.x
+      MemorySize: 512
+      Architectures:
+        - x86_64
+      Environment:
+        Variables:
+          AWS_LAMBDA_EXEC_WRAPPER: /opt/bootstrap
+          RUST_LOG: info
+          PORT: 8080
+      Layers:
+        - !Sub 'arn:aws:lambda:${AWS::Region}:753240598075:layer:LambdaAdapterLayerX86:3'
+      Events:
+        RootPath:
+          Type: Api # More info about API Event Source: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#api
+          Properties:
+            Path: /
+            Method: ANY
+        AnyPath:
+          Type: Api
+          Properties:
+            Path: /{proxy+}
+            Method: ANY
+    Metadata:
+      BuildMethod: makefile
+      
+  NextBucket:
+    Type: 'AWS::S3::Bucket'
+    Properties:
+      BucketName: !Ref NextBucketName
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+      LoggingConfiguration:
+        DestinationBucketName: !Ref NextLoggingBucket
+        LogFilePrefix: s3-access-logs
+      VersioningConfiguration:
+        Status: Enabled
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+        - ServerSideEncryptionByDefault:
+            SSEAlgorithm: 'AES256'
+
+  NextBucketPolicy:
+    Type: AWS::S3::BucketPolicy
+    Properties:
+      Bucket: !Ref NextBucket
+      PolicyDocument:
+        Id: NextBucketPolicy
+        Version: 2012-10-17
+        Statement:
+          - Action:
+              - 's3:GetObject'
+            Effect: Allow
+            Principal:
+              CanonicalUser: !GetAtt NextOriginAccessIdentity.S3CanonicalUserId
+            Resource: !Join
+              - ''
+              - - 'arn:aws:s3:::'
+                - !Ref NextBucket
+                - /*
+
+  # The Amazon S3 bucket into which access logs from S3 (for the application) and CloudFront will be put
+  NextLoggingBucket:
+    #checkov:skip=CKV_AWS_18: "This bucket is private and only for storing logs"
+    Type: 'AWS::S3::Bucket'
+    Properties:
+      BucketName: !Sub '${NextBucketName}-logs'
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls : true
+        BlockPublicPolicy : true
+        IgnorePublicAcls : true
+        RestrictPublicBuckets : true
+      AccessControl: LogDeliveryWrite
+      VersioningConfiguration:
+        Status: Enabled
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+        - ServerSideEncryptionByDefault:
+            SSEAlgorithm: 'AES256'
+    DeletionPolicy: Delete
+
+  NextOriginAccessIdentity:
+    Type: AWS::CloudFront::CloudFrontOriginAccessIdentity
+    Properties:
+      CloudFrontOriginAccessIdentityConfig:
+        Comment: OAI for Next static resources in S3 bucket
+
+  NextDistribution:
+    #checkov:skip=CKV_AWS_68: "For demo purposes and to reduce cost, no WAF is configured"
+    #checkov:skip=CKV_AWS_174: "CloudFront default certificate sets security policy to TLSv1 regardless"
+    Type: AWS::CloudFront::Distribution
+    Properties:
+      DistributionConfig:
+        Origins:
+        - Id: nextS3Origin
+          DomainName: !GetAtt NextBucket.RegionalDomainName
+          S3OriginConfig:
+            OriginAccessIdentity: !Sub 'origin-access-identity/cloudfront/${NextOriginAccessIdentity}'
+        - Id: nextAPIGatewayOrigin
+          DomainName: !Sub '${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com'
+          OriginPath: '/Prod'
+          CustomOriginConfig:
+            HTTPSPort: '443'
+            OriginProtocolPolicy: https-only
+        Enabled: 'true'
+        Comment: 'Next.js Distribution'
+        HttpVersion: http2
+        DefaultRootObject: ''
+        DefaultCacheBehavior:
+          TargetOriginId: nextAPIGatewayOrigin
+          CachePolicyId: 4135ea2d-6df8-44a3-9df3-4b5a84be39ad # CachingDisabled
+          ForwardedValues:
+            QueryString: 'true'
+            Cookies:
+              Forward: all
+          Compress: 'true'
+          AllowedMethods:
+          - DELETE
+          - GET
+          - HEAD
+          - OPTIONS
+          - PATCH
+          - POST
+          - PUT
+          ViewerProtocolPolicy: redirect-to-https
+          MaxTTL: '31536000'
+        CacheBehaviors:
+        - PathPattern: '/_next/static/*'
+          TargetOriginId: nextS3Origin
+          CachePolicyId: 658327ea-f89d-4fab-a63d-7e88639e58f6 # CachingOptimized
+          AllowedMethods:
+          - GET
+          - HEAD
+          ForwardedValues:
+            QueryString: 'false'
+            Cookies:
+              Forward: none
+          Compress: 'true'
+          ViewerProtocolPolicy: https-only
+        - PathPattern: '/static/*'
+          TargetOriginId: nextS3Origin
+          CachePolicyId: 658327ea-f89d-4fab-a63d-7e88639e58f6 # CachingOptimized
+          AllowedMethods:
+          - GET
+          - HEAD
+          ForwardedValues:
+            QueryString: 'false'
+            Cookies:
+              Forward: none
+          Compress: 'true'
+          ViewerProtocolPolicy: https-only
+        PriceClass: PriceClass_100
+        ViewerCertificate:
+          CloudFrontDefaultCertificate: 'true'
+        Logging:
+          Bucket: !GetAtt NextLoggingBucket.RegionalDomainName
+          Prefix: 'cloudfront-access-logs'
+
+Outputs:
+  # ServerlessRestApi is an implicit API created out of Events key under Serverless::Function
+  # Find out more about other implicit resources you can reference within SAM
+  # https://github.com/awslabs/serverless-application-model/blob/master/docs/internals/generated_resources.rst#api
+  NextApi:
+    Description: "API Gateway endpoint URL for Prod stage for Next function"
+    Value: !Sub 'https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/'
+  NextFunction:
+    Description: "Next Lambda Function ARN"
+    Value: !GetAtt NextFunction.Arn
+  NextFunctionIamRole:
+    Description: "Implicit IAM Role created for Next function"
+    Value: !GetAtt NextFunctionRole.Arn
+  NextBucket:
+    Description: "S3 bucket for Next static resources"
+    Value: !GetAtt NextBucket.Arn
+  NextDistribution:
+    Description: "CloudFront distribution for Next.js"
+    Value: !GetAtt NextDistribution.DomainName
